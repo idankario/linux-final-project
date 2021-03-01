@@ -1,5 +1,9 @@
 Libcli provides a shared C library for including a Cisco-like command-line
 interface into other software.
+team
+
+david sellam 328031281
+idan kario 300853751
 
 It’s a telnet interface which supports command-line editing, history,
 authentication and callbacks for a user-definable function tree.
