@@ -1,16 +1,23 @@
-#include "pch.h"
 
 #include "inotify.c"
 #include "telnet.c"
+#include "pch.h"
 #define _GNU_SOURCE
 
 void *backtrace_buffer[BACKTRACE_LENGTH];
 
+
+//Global vars
+sem_t telnet_sem;
+void *backtrace_buffer[BACKTRACE_LENGTH];
+pthread_t thread_inotify;
+pthread_t thread_telnet;
 backtrace_s bt;
 
 
 void  __attribute__ ((no_instrument_function)) reset_backtrace () {
     free(bt.trace);
+    bt.trace = (char**)malloc(0*sizeof(char*));
     bt.trace_count = 0;
     bt.is_active = 0;
 }
@@ -32,6 +39,7 @@ void  __attribute__ ((no_instrument_function))  __cyg_profile_func_enter (void *
         sem_wait(&telnet_sem);
         reset_backtrace();
     }
+    /* Compare two thread identifiers.  */
     if (!pthread_equal(thread_telnet, pthread_self())) {
         int trace_count = backtrace(backtrace_buffer, BACKTRACE_LENGTH);
         char** string = backtrace_symbols(backtrace_buffer, trace_count);
@@ -66,6 +74,7 @@ void set_opt(int argc, char **argv, parameters* p) {
 
 //SIGINT, SIGABRT handler
 void sig_handler(int sig) {
+    /* Close descriptor for named semaphore SEM.  */
     sem_close (&telnet_sem);
     sig_handler_inotify(sig);
     exit(0);
@@ -92,7 +101,7 @@ int main(int argc, char **argv) {
     //Fills execution arguments
     set_opt(argc, argv, &p);
 
-
+    
     //Creates threads
     if (pthread_create(&thread_inotify, NULL, prepare_for_polling, (void*)&p))
     {

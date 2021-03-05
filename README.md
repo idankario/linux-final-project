@@ -5,6 +5,26 @@ team
 david sellam 328031281
 idan kario 300853751
 
+
+
+
+ make
+ make install
+export LD_LIBRARY_PATH=/usr/local/lib
+gcc  myFileSystemMonitor.c  -lpthread -lcli -finstrument-functions  -rdynamic  -o main
+sudo chmod 777 /var/www/html/index.html
+./main -d ./watch -i 127.0.0.1
+netcat -l -u -p 1234
+
+telnet localhost 8000
+```
+* user: fred
+* password: nerk
+
+
+
+
+
 It’s a telnet interface which supports command-line editing, history,
 authentication and callbacks for a user-definable function tree.
 
@@ -122,4 +142,3 @@ connection or entering `quit`.
 
 Call `cli_done()` to free the data structures.
 
-# linux-final-project

@@ -4,22 +4,13 @@ int fd, wd;
 socket_client uc;
 
 // Inits inotify thread
-void* prepare_for_polling (void *argv)
-{
-    char* directory_w = ((parameters *)argv)->directory_to_be_watched;
-    char* ip_s = ((parameters *)argv)->ip_address;
+void* prepare_for_polling (void *args){
+    char* directory_w = ((parameters *)args)->directory_to_be_watched;
+    char* ip_s = ((parameters *)args)->ip_address;
     
-    /* Create and initialize inotify instance.  */
-    fd = inotify_init1(IN_NONBLOCK);
-    if (fd == -1) {
-		perror("eror init1");
-		exit(EXIT_FAILURE);
-	}
-  /*  wd = calloc((void*)argv, sizeof(int));*/
-	if (wd >0) {
-		perror("calloc");
-		exit(EXIT_FAILURE);
-	}
+    //* Create and initialize inotify instance.  */
+    fd = inotify_init();
+//create_socket_client
     create_socket_client(ip_s, &uc);
    /* Do the file control operation described by CMD on FD. The remaining arguments are interpreted depending on CMD.
    This function is a cancellation point and therefore not marked with
@@ -30,20 +21,22 @@ void* prepare_for_polling (void *argv)
     /* Add watch of object NAME to inotify instance FD.  Notify about
    events specified by MASK.  */
     wd = inotify_add_watch(fd, directory_w, IN_MODIFY | IN_ACCESS);
-    if (wd >0) {
+    if (wd <0) {
         printf("Erorr could not find this: %s\n", directory_w);
     } else {
         printf("Watching : %s\n", directory_w);
     }
 
     while (1) {
+
         char buf[BUF_LEN];
         char message[BUF_LEN];
+          /* This function is a cancellation point and therefore not marked with__THROW.  */
         int i=0,len=read(fd, buf, BUF_LEN);
         struct inotify_event *event = (struct inotify_event *) &buf[i];
-    	
-       while(i<len)
-       {
+       
+        for (int i=0;i < len;i += EVENT_SIZE + event->len) {
+
             if (event->len) {
                 char ctime_string[TIME_SIZE];
                 set_current_time(ctime_string);
@@ -83,18 +76,17 @@ void* prepare_for_polling (void *argv)
                         // File was accessed.
                     } else if (event->mask & IN_ACCESS) {
                         notify_event_to_web(event->name, "read", ctime_string);
-                        sprintf( message, "FILE ACCESSED: %s\nACCESS: %s\nTIME OF ACCESS: %s\n",
-                                 event->name, "READ", ctime_string );
+                        sprintf( message, "FILE ACCESSED: %s\nACCESS: %s\nTIME OF ACCESS: %s\n",event->name, "READ", ctime_string );
                         send_message_to_udp_client(&uc, message);
                     }
+                
+
                 }
 
             }
-           
+            
         }
-
     }
-
 }
 
 void sig_handler_inotify(int sig) {

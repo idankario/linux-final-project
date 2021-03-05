@@ -71,6 +71,7 @@ void send_message_to_udp_client (socket_client* uc, char* message) {
 
     sendto(uc->sockfd, message, MAXLINE, 0, (struct sockaddr*)NULL, sizeof(uc->servaddr));
 }
+
 void set_current_time(char *ctime_string) {
     /* Returned by `time'.  */
     time_t time_c;
