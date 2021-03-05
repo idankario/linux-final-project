@@ -1,7 +1,7 @@
-
+#include "pch.h"
 #include "inotify.c"
 #include "telnet.c"
-#include "pch.h"
+
 #define _GNU_SOURCE
 
 void *backtrace_buffer[BACKTRACE_LENGTH];
